@@ -35,4 +35,25 @@ jobs:
       - name: Build Application
         run: npm run build
         working-directory: codebase/rdicidr-0.1.0
+
+      - name: Archive build folder
+        run: tar -cfz build-artifact.tar.gz -C codebase/rdicidr-0.1.0 build
+
+      - name: Creating artifact
+        id: create_release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.base_ref }}-lattest
+          name: Build artifact for ${{ github.base_ref }}
+        env:
+          GITHUB_TOKEN: ${{ secrets-GITHUB_TOKEN }}
+
+      - name: Upload artifact
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.base_ref }}-lattest
+          files: build-artifact.tar.gz
+        env:
+          GITHUB_TOKEN: ${{ secrets-GITHUB_TOKEN }}
+         
       
