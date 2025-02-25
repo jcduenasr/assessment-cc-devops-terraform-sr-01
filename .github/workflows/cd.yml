@@ -1,0 +1,48 @@
+name: CD Pipeline
+
+on:
+  pull_request:
+    types: [closed]
+
+jobs:
+  cd:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Download release asset
+        run: |
+          gh release download ${{ github.ref_name }}-latest --pattern build-artifact.tar.gz
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract artifact
+        run: tar -xzf build-artifact.tar.gz
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: '1.10.5'
+
+      - name: Create Infra
+        working-directory: terraform/${{ github.ref_name }}
+        run: |
+          terraform init
+          terraform apply -auto-approve
+
+      - name: Deploy app
+        run: aws s3 sync build/ s3://app-${{ github.ref_name }}-jcduenasr --delete
+      
+
+         
+      
