@@ -15,7 +15,7 @@ jobs:
 
       - name: Download release asset
         run: |
-          gh release download ${{ github.ref_name }}-latest --pattern build-artifact.tar.gz
+          gh release download ${{ github.ref_name }}-lattest --pattern build-artifact.tar.gz
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
